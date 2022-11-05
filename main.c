@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -82,13 +82,6 @@ const cy_stc_gpio_pin_config_t CYBSP_USER_BTN_init_struct =
     .intEdge = CY_GPIO_INTR_RISING,     /* Interrupt Edge type */
     .vtrip = CY_GPIO_VTRIP_CMOS,        /* Input buffer voltage trip type */
     .slewRate = CY_GPIO_SLEW_FAST,      /* Output buffer slew rate */
-    .vregEn = 0UL,                      /* SIO pair output buffer mode */
-    .ibufMode = 0UL,                    /* SIO pair input buffer mode */
-    .vtripSel = 0UL,                    /* SIO pair input buffer trip point */
-    .vrefSel = 0UL,                     /* SIO pair reference voltage for input
-                                           buffer trip point */
-    .vohSel = 0UL,                      /* SIO pair regulated voltage output
-                                           level */
 };
 
 /* This structure is used to initialize a full GPIO Port using PDL 
@@ -102,7 +95,6 @@ const cy_stc_gpio_prt_config_t PORT4_init_struct =
     .pc         = 0x0EEEEEEEu,  /* Port drive modes and input buffer enable
                                    configuration */
     .pc2        = 0x00000000u,  /* Port input buffer configuration */
-    .sio        = 0x00000000u,  /* Port SIO configuration */
     .selActive  = 0x00000000u,  /* HSIOM selection for port pins */
 };
 #endif
