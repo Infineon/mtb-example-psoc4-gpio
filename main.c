@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2023, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -92,9 +92,9 @@ const cy_stc_gpio_prt_config_t PORT4_init_struct =
                                    the port */
     .intrCfg    = 0x00000000u,  /* Port interrupt edge detection
                                    configuration */
-    .pc         = 0x0EEEEEEEu,  /* Port drive modes and input buffer enable
+    .pc         = 0x00DB6DB6u,  /* Port drive modes and input buffer enable
                                    configuration */
-    .pc2        = 0x00000000u,  /* Port input buffer configuration */
+    .pc2        = 0x000000FFu,  /* Port input buffer configuration */
     .selActive  = 0x00000000u,  /* HSIOM selection for port pins */
 };
 #endif
