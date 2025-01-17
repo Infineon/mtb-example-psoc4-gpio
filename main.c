@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2020-2023, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -46,12 +46,23 @@
 /*******************************************************************************
 * Macros
 ********************************************************************************/
+#if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+#define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT0
+#define CYBSP_REFERENCE_GPIO_NUM        2
+#define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_0_pin_2_HSIOM
+
+#ifndef ioss_0_port_0_pin_2_HSIOM
+#define ioss_0_port_0_pin_2_HSIOM       HSIOM_SEL_GPIO
+#endif
+
+#else
 #define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT2
 #define CYBSP_REFERENCE_GPIO_NUM        0
 #define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_2_pin_0_HSIOM
 
 #ifndef ioss_0_port_2_pin_0_HSIOM
 #define ioss_0_port_2_pin_0_HSIOM       HSIOM_SEL_GPIO
+#endif
 #endif
 
 #define USER_BUTTON_INTR_PRIORITY       3
@@ -217,8 +228,11 @@ int main(void)
     /* Variable to store the value read from the port */
     uint32_t portReadValue = 0;
     /* Variable to store the port number of the Reference pin */
+#if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+    uint32_t portNumber = 0;
+#else
     uint32_t portNumber = 2;
-
+#endif
     /* Pin input read methods */
 
     /* The following code performs the same read from a GPIO using the different
@@ -229,7 +243,7 @@ int main(void)
     /* Pin read using #defines provided by configuration tool pin name is not
      * shown as the pin is not enabled in the configuration tool.
      */
-
+#if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
     /* Pin read with user defined custom #define pin name. This is the preferred
      * method for direct PDL use without a configuration tool. #defines
      * are typically placed in .h file but included here for example simplicity
@@ -238,21 +252,32 @@ int main(void)
     pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
 
     /* Pin read using default device pin name #defines */
-    pinReadValue = Cy_GPIO_Read(P2_0_PORT, P2_0_NUM);
+    pinReadValue = Cy_GPIO_Read(P0_2_PORT, P0_2_NUM);
 
     /* Pin read using default port register name #defines and pin number */
-    pinReadValue = Cy_GPIO_Read(GPIO_PRT2, 0);
+    pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 2);
 
     /* Pin read using port and pin numbers. Useful for algorithmically generated
      * port and pin numbers. Cy_GPIO_PortToAddr() is a helper function
      * that converts the port number into the required port register base
      * address.
      */
-    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
+    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 2);
 
     /* Direct port IN register read with mask and shift of desired pin data */
-    pinReadValue = (GPIO_PRT2->PS >> P2_0_NUM) & CY_GPIO_PS_MASK;
+    pinReadValue = (GPIO_PRT0->PS >> P0_2_NUM) & CY_GPIO_PS_MASK;
 
+#else
+    pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
+
+    pinReadValue = Cy_GPIO_Read(P2_0_PORT, P2_0_NUM);
+
+    pinReadValue = Cy_GPIO_Read(GPIO_PRT2, 0);
+
+    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
+
+    pinReadValue = (GPIO_PRT2->PS >> P2_0_NUM) & CY_GPIO_PS_MASK;
+#endif
     /* This code example uses the pin read with user defined custom #define
      * pin name from here on for simplicity.
      */
