@@ -4,14 +4,14 @@ This example demonstrates multiple methods of configuring, reading, writing, and
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-psoc4-gpio)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzE0NzEiLCJTcGVjIE51bWJlciI6IjAwMi0zMTQ3MSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IDQ6IEdQSU8gcGlucyIsInJpZCI6Im1hbGhvdHJhcm9oYSIsIkRvYyB2ZXJzaW9uIjoiMi4zLjAiLCJEb2MgTGFuZ3VhZ2UiOiJFbmdsaXNoIiwiRG9jIERpdmlzaW9uIjoiTUNEIiwiRG9jIEJVIjoiSUNXIiwiRG9jIEZhbWlseSI6IlBTT0MifQ==)
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzE0NzEiLCJTcGVjIE51bWJlciI6IjAwMi0zMTQ3MSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IDQ6IEdQSU8gcGlucyIsInJpZCI6Im1hbGhvdHJhcm9oYSIsIkRvYyB2ZXJzaW9uIjoiMi40LjAiLCJEb2MgTGFuZ3VhZ2UiOiJFbmdsaXNoIiwiRG9jIERpdmlzaW9uIjoiTUNEIiwiRG9jIEJVIjoiSUNXIiwiRG9jIEZhbWlseSI6IlBTT0MifQ==)
 
 ## Requirements
 
-- [ModusToolbox&trade;](https://www.infineon.com/modustoolbox) v3.4 or later (tested with v3.4)
+- [ModusToolbox&trade;](https://www.infineon.com/modustoolbox) v3.5 or later (tested with v3.5)
 - Board support package (BSP) minimum required version: 3.1.0
 - Programming language: C
-- Associated parts: [PSOC&trade; 4000S, PSOC&trade; 4100S, PSOC&trade; 4100S Plus, PSOC&trade; 4500S, PSOC&trade; 4100S Max, PSOC&trade; 4000T](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/psoc-4-32-bit-arm-cortex-m0-mcu/) and [PSOC&trade; 4 HV (High Voltage)](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/32-bit-psoc-4-hv-arm-cortex-m0/)
+- Associated parts: [PSOC&trade; 4000S, PSOC&trade; 4100S, PSOC&trade; 4100S Plus, PSOC&trade; 4500S, PSOC&trade; 4100S Max, PSOC&trade; 4000T, PSOC&trade; 4100T](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/psoc-4-32-bit-arm-cortex-m0-mcu/) and [PSOC&trade; 4 HV (High Voltage)](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/32-bit-psoc-4-hv-arm-cortex-m0/)
 
 ## Supported toolchains (make variable 'TOOLCHAIN')
 
@@ -28,6 +28,7 @@ This example demonstrates multiple methods of configuring, reading, writing, and
 - [PSOC&trade; 4500S Pioneer Kit](https://www.infineon.com/CY8CKIT-045S) (`CY8CKIT-045S`)
 - [PSOC&trade; 4000T CAPSENSE&trade; Prototyping Kit](https://www.infineon.com/CY8CPROTO-040T) (`CY8CPROTO-040T`)
 - [PSOC&trade; 4000T Multi-Sense Prototyping Kit](https://www.infineon.com/CY8CPROTO-040T-MS) (`CY8CPROTO-040T-MS`)
+- [PSOC&trade; 4100T Plus CAPSENSE&trade; Prototyping kit](https://www.infineon.com/CY8CPROTO-041TP) (`CY8CPROTO-041TP`)
 - [PSOC&trade; 4 HVMS-128K Evaluation Kit](https://www.infineon.com/KIT_PSOC4-HVMS-128K_LITE) (`KIT_PSOC4-HVMS-128K_LITE`)
 - [PSOC&trade; 4 HVMS-64K Evaluation Kit](https://www.infineon.com/KIT_PSOC4-HVMS-64K_LITE) (`KIT_PSOC4-HVMS-64K_LITE`)
 
@@ -45,9 +46,9 @@ See the kit guide to ensure that the board is configured correctly.
 Use jumper wire to externally connect the reference pin (P2[0]) to either logic HIGH (3V3) or logic LOW (GND).
 For PSOC&trade; 4 HVMS kits, use jumper wire to externally connect the reference pin (P0[2]) to either logic HIGH (VDDD) or logic LOW (GND).
 
-Board |[CY8CKIT-041S-MAX](https://www.infineon.com/CY8CKIT-041S-MAX)|[CY8CKIT-149](https://www.infineon.com/CY8CKIT-149)|[CY8CKIT-145-40XX](https://www.infineon.com/CY8CKIT-145-40XX)|[CY8CKIT-041-41XX](https://www.infineon.com/CY8CKIT-041-41XX)|[CY8CKIT-045S](https://www.infineon.com/CY8CKIT-045S)|[CY8CPROTO-040T](https://www.infineon.com/CY8CPROTO-040T)|[CY8CPROTO-040T-MS](https://www.infineon.com/CY8CPROTO-040T-MS)|[KIT_PSOC4-HVMS-128K_LITE](https://www.infineon.com/KIT_PSOC4-HVMS-128K_LITE)|[KIT_PSOC4-HVMS-64K_LITE](https://www.infineon.com/KIT_PSOC4-HVMS-64K_LITE)
------| ------| ------ | ------ | ------ | ------ |  ------ | ------ | ------ | ------
-Reference pin |P2[0]| P2[0] | P2[0] | P2[0] | P2[0] |  P2[0] | P2[0] | P0[2] | P0[2]
+Board |[CY8CKIT-041S-MAX](https://www.infineon.com/CY8CKIT-041S-MAX)|[CY8CKIT-149](https://www.infineon.com/CY8CKIT-149)|[CY8CKIT-145-40XX](https://www.infineon.com/CY8CKIT-145-40XX)|[CY8CKIT-041-41XX](https://www.infineon.com/CY8CKIT-041-41XX)|[CY8CKIT-045S](https://www.infineon.com/CY8CKIT-045S)|[CY8CPROTO-040T](https://www.infineon.com/CY8CPROTO-040T)|[CY8CPROTO-040T-MS](https://www.infineon.com/CY8CPROTO-040T-MS)|[CY8CPROTO-041TP](https://www.infineon.com/CY8CPROTO-04)|[KIT_PSOC4-HVMS-128K_LITE](https://www.infineon.com/KIT_PSOC4-HVMS-128K_LITE)|[KIT_PSOC4-HVMS-64K_LITE](https://www.infineon.com/KIT_PSOC4-HVMS-64K_LITE)
+-----| ------| ------ | ------ | ------ | ------ |  ------ | ------ | ------ | ------ | ------
+Reference pin |P2[0]| P2[0] | P2[0] | P2[0] | P2[0] |  P2[0] | P2[0] | P2[0] | P0[2] | P0[2]
 <br>
 
 ## Software setup
@@ -278,6 +279,7 @@ Document title: *CE231471* - *PSOC&trade; 4: GPIO pins*
  2.1.0   | Added support for CY8CPROTO-040T and updated to support ModusToolbox&trade; v3.1.
  2.2.0   | Added support for KIT_PSOC4-HVMS-128K_LITE and KIT_PSOC4-HVMS-64K_LITE and updated to support ModusToolbox&trade; v3.2.
  2.3.0   | Added support for CY8CPROTO-040T-MS and updated to support ModusToolbox&trade; v3.4.
+ 2.4.0   | Added support for CY8CPROTO-041TP and updated to support ModusToolbox&trade; v3.5. <br> Changed HVMS kit name PSoC4 to PSOC4.
 <br>
 ---------------------------------------------------------
 
