@@ -55,6 +55,17 @@
 #define ioss_0_port_0_pin_2_HSIOM       HSIOM_SEL_GPIO
 #endif
 
+
+#elif defined  CY_DEVICE_PSOC4HV144K
+#define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT0
+#define CYBSP_REFERENCE_GPIO_NUM        0        
+#define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_0_pin_0_HSIOM
+
+#ifndef ioss_0_port_0_pin_0_HSIOM
+#define ioss_0_port_0_pin_0_HSIOM       HSIOM_SEL_GPIO
+#endif
+
+
 #else
 #define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT2
 #define CYBSP_REFERENCE_GPIO_NUM        0
@@ -226,7 +237,10 @@ int main(void)
     /* Variable to store the value of the Reference pin */
     uint32_t pinReadValue = 0;
     /* Variable to store the value read from the port */
+#ifndef CY_DEVICE_PSOC4HV144K
     uint32_t portReadValue = 0;
+#endif
+
     /* Variable to store the port number of the Reference pin */
 #if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
     uint32_t portNumber = 0;
@@ -267,6 +281,19 @@ int main(void)
     /* Direct port IN register read with mask and shift of desired pin data */
     pinReadValue = (GPIO_PRT0->PS >> P0_2_NUM) & CY_GPIO_PS_MASK;
 
+#elif defined CY_DEVICE_PSOC4HV144K
+    pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
+
+    pinReadValue = Cy_GPIO_Read(P0_0_PORT, P0_0_NUM);
+
+    pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 0);
+
+    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
+
+    pinReadValue = (GPIO_PRT0->PS >> P0_0_NUM) & CY_GPIO_PS_MASK;
+
+
+
 #else
     pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
 
@@ -291,7 +318,11 @@ int main(void)
      * selected pin without using read-modify-write operations. The Write API is
      * therefore thread and multi-core safe.
      */
+#if defined CY_DEVICE_PSOC4HV144K
+    Cy_GPIO_Write(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN, pinReadValue);
+#else
     Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, pinReadValue);
+#endif
 
     Cy_SysLib_Delay(LED_DELAY_MS);
 
@@ -304,12 +335,21 @@ int main(void)
      * time. The same argument variations as demonstrated with the
      * Cy_GPIO_Read() API can be used.
      */
+#if defined CY_DEVICE_PSOC4HV144K
+    Cy_GPIO_Clr(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
+    Cy_SysLib_Delay(LED_DELAY_MS);
+    Cy_GPIO_Set(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
+    Cy_SysLib_Delay(LED_DELAY_MS);
+    Cy_GPIO_Inv(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
+    Cy_SysLib_Delay(LED_DELAY_MS);
+#else
     Cy_GPIO_Clr(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
     Cy_GPIO_Set(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
     Cy_GPIO_Inv(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
+#endif
 
     for(;;)
     {
@@ -320,9 +360,11 @@ int main(void)
          * to possible read-modify-write operations. All pins in a Port under
          * direct register control should only be accessed by a single CPU core.
          */
+#ifndef CY_DEVICE_PSOC4HV144K
         portReadValue = GPIO_PRT4->DR;
         portReadValue++;
         GPIO_PRT4->DR = portReadValue;
+#endif
 
         if(interruptFlag == INTERRUPT_FLAG_SET)
         {
@@ -330,7 +372,12 @@ int main(void)
              * value from the Reference pin and write the value to the User LED.
              */
             pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
+#if defined CY_DEVICE_PSOC4HV144K
+            Cy_GPIO_Write(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN, pinReadValue);
+#else
             Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, pinReadValue);
+#endif
+
             Cy_SysLib_Delay(LED_DELAY_MS);
             /* Clear interrupt flag */
             interruptFlag = INTERRUPT_FLAG_CLEAR;
