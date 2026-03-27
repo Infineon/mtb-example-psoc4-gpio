@@ -1,79 +1,93 @@
 /******************************************************************************
-* File Name:   main.c
-*
-* Description: This is the source code for the PSoC4 - GPIO Pins example
-*              for ModusToolbox.
-*
-* Related Document: See README.md
-*
-*
-*******************************************************************************
-* Copyright 2020-2025, Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
-*
-* This software, including source code, documentation and related
-* materials ("Software") is owned by Cypress Semiconductor Corporation
-* or one of its affiliates ("Cypress") and is protected by and subject to
-* worldwide patent protection (United States and foreign),
-* United States copyright laws and international treaty provisions.
-* Therefore, you may use this Software only as provided in the license
-* agreement accompanying the software package from which you
-* obtained this Software ("EULA").
-* If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
-* non-transferable license to copy, modify, and compile the Software
-* source code solely for use in connection with Cypress's
-* integrated circuit products.  Any reproduction, modification, translation,
-* compilation, or representation of this Software except as specified
-* above is prohibited without the express written permission of Cypress.
-*
-* Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
-* reserves the right to make changes to the Software without notice. Cypress
-* does not assume any liability arising out of the application or use of the
-* Software or any product or circuit described in the Software. Cypress does
-* not authorize its products for use in any products where a malfunction or
-* failure of the Cypress product may reasonably be expected to result in
-* significant property damage, injury or death ("High Risk Product"). By
-* including Cypress's product in a High Risk Product, the manufacturer
-* of such system or application assumes all risk of such use and in doing
-* so agrees to indemnify Cypress against all liability.
-*******************************************************************************/
+ * File Name:   main.c
+ *
+ * Description: This is the source code for the PSoC4 - GPIO Pins example
+ *              for ModusToolbox.
+ *
+ * Related Document: See README.md
+ *
+ *
+ ******************************************************************************
+ * (c) 2020-2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
+ * This software, associated documentation and materials ("Software") is
+ * owned by Infineon Technologies AG or one of its affiliates ("Infineon")
+ * and is protected by and subject to worldwide patent protection, worldwide
+ * copyright laws, and international treaty provisions. Therefore, you may use
+ * this Software only as provided in the license agreement accompanying the
+ * software package from which you obtained this Software. If no license
+ * agreement applies, then any use, reproduction, modification, translation, or
+ * compilation of this Software is prohibited without the express written
+ * permission of Infineon.
+ *
+ * Disclaimer: UNLESS OTHERWISE EXPRESSLY AGREED WITH INFINEON, THIS SOFTWARE
+ * IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING, BUT NOT LIMITED TO, ALL WARRANTIES OF NON-INFRINGEMENT OF
+ * THIRD-PARTY RIGHTS AND IMPLIED WARRANTIES SUCH AS WARRANTIES OF FITNESS FOR A
+ * SPECIFIC USE/PURPOSE OR MERCHANTABILITY.
+ * Infineon reserves the right to make changes to the Software without notice.
+ * You are responsible for properly designing, programming, and testing the
+ * functionality and safety of your intended application of the Software, as
+ * well as complying with any legal requirements related to its use. Infineon
+ * does not guarantee that the Software will be free from intrusion, data theft
+ * or loss, or other breaches ("Security Breaches"), and Infineon shall have
+ * no liability arising out of any Security Breaches. Unless otherwise
+ * explicitly approved by Infineon, the Software may not be used in any
+ * application where a failure of the Product or any consequences of the use
+ * thereof can reasonably be expected to result in personal injury.
+ *****************************************************************************/
 
+/******************************************************************************
+ * Include header files
+ *****************************************************************************/
 #include "cy_pdl.h"
 #include "cybsp.h"
 
-/*******************************************************************************
-* Macros
-********************************************************************************/
+/******************************************************************************
+ * Macros
+ *****************************************************************************/
+/* For PSOC4 HVMS family */
 #if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
 #define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT0
 #define CYBSP_REFERENCE_GPIO_NUM        2
 #define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_0_pin_2_HSIOM
 
+#define CYBSP_ACCESSED_GPIO_PORT        GPIO_PRT4
+
 #ifndef ioss_0_port_0_pin_2_HSIOM
 #define ioss_0_port_0_pin_2_HSIOM       HSIOM_SEL_GPIO
 #endif
 
+#define PRT_NUM 0
 
-#elif defined  CY_DEVICE_PSOC4HV144K
+/* For PSOC4 HVPA family */
+#elif defined  COMPONENT_PSOC4HVPA144K || COMPONENT_PSOC4HVPASPM10
 #define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT0
-#define CYBSP_REFERENCE_GPIO_NUM        0        
-#define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_0_pin_0_HSIOM
+#define CYBSP_REFERENCE_GPIO_NUM        4
+#define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_0_pin_4_HSIOM
 
-#ifndef ioss_0_port_0_pin_0_HSIOM
-#define ioss_0_port_0_pin_0_HSIOM       HSIOM_SEL_GPIO
+#define CYBSP_ACCESSED_GPIO_PORT        GPIO_PRT2
+
+#ifndef ioss_0_port_0_pin_4_HSIOM
+#define ioss_0_port_0_pin_4_HSIOM       HSIOM_SEL_GPIO
 #endif
 
+#define PRT_NUM 0
 
+/* For other PSOC4 family */
 #else
 #define CYBSP_REFERENCE_GPIO_PORT       GPIO_PRT2
 #define CYBSP_REFERENCE_GPIO_NUM        0
 #define CYBSP_REFERENCE_GPIO_HSIOM      ioss_0_port_2_pin_0_HSIOM
 
+#define CYBSP_ACCESSED_GPIO_PORT        GPIO_PRT4
+
 #ifndef ioss_0_port_2_pin_0_HSIOM
 #define ioss_0_port_2_pin_0_HSIOM       HSIOM_SEL_GPIO
 #endif
+
+#define PRT_NUM 2
+
 #endif
 
 #define USER_BUTTON_INTR_PRIORITY       3
@@ -88,11 +102,10 @@
  */
 #define PDL_PIN_CONFIGURATION           0
 
-/*******************************************************************************
-* Global Variables
-********************************************************************************/
-
-uint32_t interruptFlag = INTERRUPT_FLAG_CLEAR;
+/******************************************************************************
+ * Global Variables
+ *****************************************************************************/
+uint32_t g_interruptFlag = INTERRUPT_FLAG_CLEAR;
 
 #if PDL_PIN_CONFIGURATION
 /* Structure used to initialize the User Button GPIO using PDL configuration. */
@@ -108,7 +121,7 @@ const cy_stc_gpio_pin_config_t CYBSP_USER_BTN_init_struct =
 
 /* This structure is used to initialize a full GPIO Port using PDL 
  * configuration */
-const cy_stc_gpio_prt_config_t PORT4_init_struct =
+const cy_stc_gpio_prt_config_t ACCESSED_PORT_init_struct =
 {
     .dr         = 0x00000000u,  /* Initial output data for the IO pins in
                                    the port */
@@ -128,14 +141,14 @@ const cy_stc_sysint_t user_button_intr_config = {
     .intrPriority = USER_BUTTON_INTR_PRIORITY       /* Interrupt priority */
 };
 
-/*******************************************************************************
-* Function Name: user_button_interrupt_handler
-********************************************************************************
-*
-* Summary:
-*  This function is executed when User Button interrupt is triggered.
-*
-*******************************************************************************/
+/******************************************************************************
+ * Function Name: user_button_interrupt_handler
+ ******************************************************************************
+ *
+ * Summary:
+ *  This function is executed when User Button interrupt is triggered.
+ *
+ *****************************************************************************/
 void user_button_interrupt_handler()
 {
     /* Clears the triggered pin interrupt */
@@ -143,25 +156,25 @@ void user_button_interrupt_handler()
     NVIC_ClearPendingIRQ(user_button_intr_config.intrSrc);
 
     /* Set interrupt flag */
-    interruptFlag = INTERRUPT_FLAG_SET;
+    g_interruptFlag = INTERRUPT_FLAG_SET;
 }
 
-/*******************************************************************************
-* Function Name: main
-********************************************************************************
-* Summary:
-*  The main function performs the following actions:
-*   1. Initializes GPIO pins
-*   2. Reads value from Reference pin when User button is pressed.
-*   3. Writes value read from the Reference pin to User LED pin.
-*
-* Parameters:
-*  None
-*
-* Return:
-*  int
-*
-*******************************************************************************/
+/******************************************************************************
+ * Function Name: main
+ ******************************************************************************
+ * Summary:
+ *  The main function performs the following actions:
+ *   1. Initializes GPIO pins
+ *   2. Reads value from Reference pin when User button is pressed.
+ *   3. Writes value read from the Reference pin to User LED pin.
+ *
+ * Parameters:
+ *  None
+ *
+ * Return:
+ *  int
+ *
+ *****************************************************************************/
 int main(void)
 {
     cy_rslt_t result;
@@ -209,8 +222,11 @@ int main(void)
      * configure all pins in a port and the user must calculate the combined
      * register values for all pins or copy them from a configuration tool. 
      * This is the method used by automated configuration tools.
+     * (excluding PSOC4 HVPA-144K which lacks sufficient ports)
      */
-    Cy_GPIO_Port_Init(GPIO_PRT4, &PORT4_init_struct);
+    #ifndef COMPONENT_PSOC4HVPA144K
+	Cy_GPIO_Port_Init(CYBSP_ACCESSED_GPIO_PORT, &ACCESSED_PORT_init_struct);
+    #endif
 #else
     /* Individual pin configuration settings can also be changed at run time
      * using supplied driver API functions. An example of some of these
@@ -236,94 +252,106 @@ int main(void)
 
     /* Variable to store the value of the Reference pin */
     uint32_t pinReadValue = 0;
-    /* Variable to store the value read from the port */
-#ifndef CY_DEVICE_PSOC4HV144K
+
+    /* Variable to store the value read from the port
+     * (excluding PSOC4 HVPA-144K which lacks sufficient ports)
+     */
+    #ifndef COMPONENT_PSOC4HVPA144K
     uint32_t portReadValue = 0;
-#endif
+    #endif
 
     /* Variable to store the port number of the Reference pin */
-#if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
-    uint32_t portNumber = 0;
-#else
-    uint32_t portNumber = 2;
-#endif
-    /* Pin input read methods */
+    uint32_t portNumber = PRT_NUM;
 
-    /* The following code performs the same read from a GPIO using the different
-     * read methods available. Please choose the most appropriate method for your
-     * specific use case. All Read() functions are thread and multi-core safe.
-     */
+    /**************************************************************************
+     * SECTION: GPIO READ METHODS
+     * 5 different types of pin input read methods are demonstrated below.
+     *
+     * - The following code performs the same read from a GPIO using different
+     *   read methods available. Choose the most appropriate for your use case.
+     * - All Read() functions are thread and multi-core safe.
+     * - Pin read using #defines provided by configuration tool pin name is
+     *   not shown as the pin is not enabled in the configuration tool.
+     *************************************************************************/
 
-    /* Pin read using #defines provided by configuration tool pin name is not
-     * shown as the pin is not enabled in the configuration tool.
-     */
-#if defined  COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
-    /* Pin read with user defined custom #define pin name. This is the preferred
-     * method for direct PDL use without a configuration tool. #defines
-     * are typically placed in .h file but included here for example simplicity
-     * and clarity
-     */
-    pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
+    {
+        /* 1. Pin read with user defined custom #define pin name
+         *    This is the preferred method for direct PDL use without
+         *    a configuration tool.
+         *    #defines are typically placed in .h file but included here for
+         *    example simplicity and clarity with HW abstraction.
+         */
+        pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
+    }
 
-    /* Pin read using default device pin name #defines */
-    pinReadValue = Cy_GPIO_Read(P0_2_PORT, P0_2_NUM);
+    {
+        /* 2. Pin read using default device pin name #defines */
+        #if defined COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+        pinReadValue = Cy_GPIO_Read(P0_2_PORT, P0_2_NUM);
+        #elif defined COMPONENT_PSOC4HVPA144K || COMPONENT_PSOC4HVPASPM10
+        pinReadValue = Cy_GPIO_Read(P0_4_PORT, P0_4_NUM);
+        #else
+        pinReadValue = Cy_GPIO_Read(P2_0_PORT, P2_0_NUM);
+        #endif
+    }
 
-    /* Pin read using default port register name #defines and pin number */
-    pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 2);
+    {
+        /* 3. Pin read using default port register name #defines and pin number */
+        #if defined COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+        pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 2);
+        #elif defined COMPONENT_PSOC4HVPA144K || COMPONENT_PSOC4HVPASPM10
+        pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 4);
+        #else
+        pinReadValue = Cy_GPIO_Read(GPIO_PRT2, 0);
+        #endif
+    }
 
-    /* Pin read using port and pin numbers. Useful for algorithmically generated
-     * port and pin numbers. Cy_GPIO_PortToAddr() is a helper function
-     * that converts the port number into the required port register base
-     * address.
-     */
-    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 2);
+    {
+        /* 4. Pin read using port and pin numbers
+         *    Useful for algorithmically generated port and pin numbers.
+         *    Cy_GPIO_PortToAddr() is a helper function that converts
+         *    the port number into the required port register base address.
+         */
+        #if defined COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+        pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 2);
+        #elif defined COMPONENT_PSOC4HVPA144K || COMPONENT_PSOC4HVPASPM10
+        pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 4);
+        #else
+        pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
+        #endif
+    }
 
-    /* Direct port IN register read with mask and shift of desired pin data */
-    pinReadValue = (GPIO_PRT0->PS >> P0_2_NUM) & CY_GPIO_PS_MASK;
+    {
+        /* 5. Pin read using direct port register access
+         *    May not be thread or multi-core safe due to possible 
+         *    read-modify-write operations.
+         *    Use only when you are certain that no other code will access
+         *    the same port pins.
+         */
+        #if defined COMPONENT_PSOC4HVMS128K || COMPONENT_PSOC4HVMS64K
+        pinReadValue = (GPIO_PRT0->PS >> 2) & CY_GPIO_PS_MASK;
+        #elif defined COMPONENT_PSOC4HVPA144K || COMPONENT_PSOC4HVPASPM10
+        pinReadValue = (GPIO_PRT0->PS >> 4) & CY_GPIO_PS_MASK;
+        #else
+        pinReadValue = (GPIO_PRT2->PS >> 0) & CY_GPIO_PS_MASK;
+        #endif
+    }
 
-#elif defined CY_DEVICE_PSOC4HV144K
-    pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
-
-    pinReadValue = Cy_GPIO_Read(P0_0_PORT, P0_0_NUM);
-
-    pinReadValue = Cy_GPIO_Read(GPIO_PRT0, 0);
-
-    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
-
-    pinReadValue = (GPIO_PRT0->PS >> P0_0_NUM) & CY_GPIO_PS_MASK;
-
-
-
-#else
-    pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
-
-    pinReadValue = Cy_GPIO_Read(P2_0_PORT, P2_0_NUM);
-
-    pinReadValue = Cy_GPIO_Read(GPIO_PRT2, 0);
-
-    pinReadValue = Cy_GPIO_Read(Cy_GPIO_PortToAddr(portNumber), 0);
-
-    pinReadValue = (GPIO_PRT2->PS >> P2_0_NUM) & CY_GPIO_PS_MASK;
-#endif
     /* This code example uses the pin read with user defined custom #define
      * pin name from here on for simplicity.
      */
 
-    /* Similarly write operations can be performed using different pin write
-     * methods. For simplicity, this code example uses the pin write using
-     * #defines provided by configuration tool pin name. This is the preferred
-     * method for use with configuration tools. Cy_GPIO_Write() API is best used
-     * when the desired pin state is not already known and is determined at run
-     * time. The Write API uses atomic operations that directly affect only the
-     * selected pin without using read-modify-write operations. The Write API is
-     * therefore thread and multi-core safe.
-     */
-#if defined CY_DEVICE_PSOC4HV144K
-    Cy_GPIO_Write(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN, pinReadValue);
-#else
+    /**************************************************************************
+     * SECTION: GPIO WRITE METHODS
+     *
+     * - Write operations can be performed using different pin write methods.
+     * - Cy_GPIO_Write() API is best used when the desired pin state is not
+     *   already known and is determined at run time.
+     * - The Write API uses atomic operations that directly affect only the
+     *   selected pin without using read-modify-write operations.
+     * - The Write API is therefore thread and multi-core safe.
+     *************************************************************************/
     Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, pinReadValue);
-#endif
-
     Cy_SysLib_Delay(LED_DELAY_MS);
 
     /* Pin output methods to directly Set, Clear, and Invert pin output state */
@@ -335,52 +363,45 @@ int main(void)
      * time. The same argument variations as demonstrated with the
      * Cy_GPIO_Read() API can be used.
      */
-#if defined CY_DEVICE_PSOC4HV144K
-    Cy_GPIO_Clr(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
-    Cy_SysLib_Delay(LED_DELAY_MS);
-    Cy_GPIO_Set(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
-    Cy_SysLib_Delay(LED_DELAY_MS);
-    Cy_GPIO_Inv(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN);
-    Cy_SysLib_Delay(LED_DELAY_MS);
-#else
     Cy_GPIO_Clr(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
     Cy_GPIO_Set(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
     Cy_GPIO_Inv(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM);
     Cy_SysLib_Delay(LED_DELAY_MS);
-#endif
 
+    /**************************************************************************
+     * SECTION: MAIN LOOP - SIMULTANEOUS PORT ACCESS & INTERRUPT HANDLING
+     *************************************************************************/
     for(;;)
     {
-        /* Simultaneous Port Pin access */
-
-        /* Direct register access is used to interface with multiple pins in
+        /* Simultaneous Port Pin access (Binary Counter Demo)
+         * 
+         * Direct register access is used to interface with multiple pins in
          * one port at the same time. May not be thread or multi-core safe due
          * to possible read-modify-write operations. All pins in a Port under
          * direct register control should only be accessed by a single CPU core.
+         * (excluding PSOC4 HVPA-144K which lacks sufficient ports)
          */
-#ifndef CY_DEVICE_PSOC4HV144K
-        portReadValue = GPIO_PRT4->DR;
+        #ifndef COMPONENT_PSOC4HVPA144K
+        portReadValue = CYBSP_ACCESSED_GPIO_PORT->DR;
         portReadValue++;
-        GPIO_PRT4->DR = portReadValue;
-#endif
+        CYBSP_ACCESSED_GPIO_PORT->DR = portReadValue;
+        #endif
 
-        if(interruptFlag == INTERRUPT_FLAG_SET)
+        /* Interrupt-driven LED Control */
+        if(g_interruptFlag == INTERRUPT_FLAG_SET)
         {
             /* If interrupt occurs i.e., if button is pressed, read the input
              * value from the Reference pin and write the value to the User LED.
              */
             pinReadValue = Cy_GPIO_Read(CYBSP_REFERENCE_GPIO_PORT, CYBSP_REFERENCE_GPIO_NUM);
-#if defined CY_DEVICE_PSOC4HV144K
-            Cy_GPIO_Write(CYBSP_USER_LED6_PORT, CYBSP_LED6_PIN, pinReadValue);
-#else
+
             Cy_GPIO_Write(CYBSP_USER_LED_PORT, CYBSP_USER_LED_NUM, pinReadValue);
-#endif
 
             Cy_SysLib_Delay(LED_DELAY_MS);
             /* Clear interrupt flag */
-            interruptFlag = INTERRUPT_FLAG_CLEAR;
+            g_interruptFlag = INTERRUPT_FLAG_CLEAR;
         }
         else
         {
